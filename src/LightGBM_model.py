@@ -2,46 +2,54 @@ import os
 import pandas as pd
 import numpy as np
 import lightgbm as lgb
+import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score
 
+# Set file path
 base_path = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(base_path, "../combine_dataset/cleaned_combined_awards.csv")
 
+# Load data
 df = pd.read_csv(file_path, delimiter="\t", encoding="utf-8")
 
-# preprocessing
+# Preprocessing: drop rows with missing values
 df = df.dropna(subset=["awardname", "personname", "stats_Discipline", "award_category", "award_age"])
+
+# Map prestige levels to numeric scores
 df["prestige_score"] = df["prestige"].map({
     "Not Designated": 0,
     "Prestigious": 1,
     "Highly Prestigious": 2
 })
 
-# filter award count < 10
+# Filter out people with less than 5 awards
 person_counts = df["personname"].value_counts()
-df = df[df["personname"].isin(person_counts[person_counts >= 10].index)]
+df = df[df["personname"].isin(person_counts[person_counts >= 5].index)]
 
-# selecting award count as feature
+# Compute award count per person
 award_counts = df["personname"].value_counts().to_dict()
 df["person_award_count"] = df["personname"].map(award_counts)
 
-# year related feature
+# Create year and decade features
 df["award_year"] = df["awardreceivedawardyear"]
 df["award_decade"] = (df["award_year"] // 10) * 10
 
-# encoding features
+# Encode categorical variables
 person_encoder = LabelEncoder()
 df["person_id"] = person_encoder.fit_transform(df["personname"])
+
 award_encoder = LabelEncoder()
 df["award_id"] = award_encoder.fit_transform(df["awardname"])
+
 discipline_encoder = LabelEncoder()
 df["discipline_id"] = discipline_encoder.fit_transform(df["stats_Discipline"])
+
 df["category_id"] = LabelEncoder().fit_transform(df["award_category"])
 df["decade_id"] = LabelEncoder().fit_transform(df["award_decade"])
 
-# selecting 4 features (award counts, award age, displince_id, awad_id)
+# Select features for training
 features = [
     "person_award_count",
     "award_age",
@@ -52,17 +60,18 @@ features = [
 X = df[features]
 y = df["person_id"]
 
-# Split
+# Split data into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# LightGBM dataset
+# ----------------------
+# Train LightGBM model
+# ----------------------
 train_data = lgb.Dataset(X_train, label=y_train)
 valid_data = lgb.Dataset(X_test, label=y_test)
 
-# tuning parameters
-params = {
+params_lgb = {
     "objective": "multiclass",
     "num_class": len(y.unique()),
     "metric": "multi_logloss",
@@ -77,9 +86,8 @@ params = {
     "seed": 42
 }
 
-# training model
-model = lgb.train(
-    params,
+lgb_model = lgb.train(
+    params_lgb,
     train_data,
     valid_sets=[valid_data],
     num_boost_round=1000,
@@ -89,41 +97,97 @@ model = lgb.train(
     ]
 )
 
-# F1 score
-"""
-y_pred = model.predict(X_test)
-y_pred_class = y_pred.argmax(axis=1)
-f1 = f1_score(y_test, y_pred_class, average="macro")
-print(f"\n LightGBM Macro F1 Score: {f1:.4f}")
-"""
+# ----------------------
+# Train XGBoost model
+# ----------------------
+dtrain = xgb.DMatrix(X_train, label=y_train)
+dtest = xgb.DMatrix(X_test, label=y_test)
 
-# predictive function to top k
-def predict_top_k_awardees_simple(award_name, top_k=3):
-    if award_name not in award_encoder.classes_:
+params_xgb = {
+    'objective': 'multi:softprob',
+    'num_class': len(y.unique()),
+    'eval_metric': 'mlogloss',
+    'learning_rate': 0.01,
+    'max_depth': 12,
+    'seed': 42
+}
+
+xgb_model = xgb.train(
+    params_xgb,
+    dtrain,
+    num_boost_round=1000,
+    evals=[(dtest, 'eval')],
+    early_stopping_rounds=30
+)
+
+# Evaluate individual models
+lgb_preds = lgb_model.predict(X_test)
+lgb_pred_class = lgb_preds.argmax(axis=1)
+lgb_acc = accuracy_score(y_test, lgb_pred_class)
+
+xgb_preds = xgb_model.predict(dtest)
+xgb_pred_class = xgb_preds.argmax(axis=1)
+xgb_acc = accuracy_score(y_test, xgb_pred_class)
+
+print(f"LightGBM Accuracy: {lgb_acc:.4f}")
+print(f"XGBoost Accuracy: {xgb_acc:.4f}")
+
+# ----------------------
+# Ensemble predictions: Average the probabilities
+# ----------------------
+ensemble_probs = (lgb_preds + xgb_preds) / 2
+ensemble_pred_class = ensemble_probs.argmax(axis=1)
+ensemble_acc = accuracy_score(y_test, ensemble_pred_class)
+print(f"Ensemble Accuracy: {ensemble_acc:.4f}")
+
+# ----------------------
+# Predict top-k awardees using ensemble
+# ----------------------
+def predict_top_k_awardees_ensemble(award_name, top_k=10):
+    # Normalize award name to match case and whitespace
+    normalized_input = award_name.strip().lower()
+    award_name_matched = None
+    for name in award_encoder.classes_:
+        if normalized_input == name.strip().lower():
+            award_name_matched = name
+            break
+    if award_name_matched is None:
         print("Award name not found")
         return []
 
+    # Use default discipline and average age from the dataset
     discipline = df["stats_Discipline"].mode()[0]
     age = int(df["award_age"].mean())
     count = 5
 
+    # Prepare input for prediction
     input_df = pd.DataFrame([{
-        "award_id": award_encoder.transform([award_name])[0],
+        "award_id": award_encoder.transform([award_name_matched])[0],
         "discipline_id": discipline_encoder.transform([discipline])[0],
         "award_age": age,
         "person_award_count": count
     }])
-
-    probs = model.predict(input_df)
-    top_k_indices = np.argsort(probs[0])[::-1][:top_k]
+    
+    # Create DMatrix for XGBoost prediction
+    input_df = input_df[X_train.columns]
+    dmatrix_input = xgb.DMatrix(input_df)
+    
+    # Get prediction probabilities from both models
+    lgb_prob = lgb_model.predict(input_df)
+    xgb_prob = xgb_model.predict(dmatrix_input)
+    
+    # Average the probabilities for ensemble prediction
+    ensemble_prob = (lgb_prob + xgb_prob) / 2
+    
+    top_k_indices = np.argsort(ensemble_prob[0])[::-1][:top_k]
     top_k_names = person_encoder.inverse_transform(top_k_indices)
 
-    print(f"\n Top {top_k} possible winner of ({award_name}):")
+    print(f"\nTop {top_k} possible winner(s) of ({award_name_matched}):")
     for i, name in enumerate(top_k_names, 1):
         print(f"{i}. {name}")
     return top_k_names
 
-# user input
+# User input for ensemble prediction
 if __name__ == "__main__":
     user_award = input("Type an award name to predict possible winners: ").strip()
-    predict_top_k_awardees_simple(user_award)
+    predict_top_k_awardees_ensemble(user_award)
