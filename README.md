@@ -1,4 +1,4 @@
-# Decentralized Neural Traffic Orchestration
+# BU Awards Analysis
 
 This repository contains the workflow, analysis, and visualizations for the project "BU Award Analysis" for CDS DS 538 Spring 2025, at Boston University.
 
