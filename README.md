@@ -1,6 +1,6 @@
 # BU Awards Analysis
 
-This repository contains the workflow, analysis, and visualizations for the project "BU Award Analysis" for CDS DS 538 Spring 2025, at Boston University.
+This repository contains the workflow, analysis, and visualizations for the project "BU Award Analysis" for CDS DS 539 Spring 2025, at Boston University.
 
 ## Overview
 This project is about helping BU faculty determine which awards they should apply to for the highest chance. The goal is to create a model that works alongside the current excel model the Strategy & Innovation department currently uses.
