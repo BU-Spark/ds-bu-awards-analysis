@@ -13,7 +13,7 @@ This project is about helping BU faculty determine which awards they should appl
 
 ### Dataset
 
-## Discipline Specific Pathways - 
+## Discipline Specific Pathways
 
 | Column Name                                 | Data Type | Description |
 |--------------------------------------------|-----------|-------------|
