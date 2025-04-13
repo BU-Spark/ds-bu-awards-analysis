@@ -44,8 +44,12 @@ This project is about helping BU faculty determine which awards they should appl
 
 ### Data Structure
 ```
-data/
-├──
-├──
-└── 
+├── clean_dataset/           # Cleaned dataset
+├── combine_dataset/         # Combined RI_Matches and Discipline_Pathways dataset
+├── dataset-documentation/   # Dataset documentation and metadata
+├── raw_dataset/             # Original dataset files
+├── scripts/                 # Hypothesis Testing and EDA Python Scripts
+├── src/                     # Scripts for training model
+├── README.md                # Project overview and instructions
+├── requirements.txt         # Dependencies for random forest model
 ```
