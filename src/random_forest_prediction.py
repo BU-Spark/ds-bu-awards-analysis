@@ -223,7 +223,7 @@ def interactive_mode():
     """
     Run the model in interactive mode to recommend faculty for specific awards
     """
-    file_path = 'data/cleaned_combined_awards.csv'   
+    file_path = '../ds-bu-awards-analysis/combine_dataset/cleaned_combined_awards.csv'   
     print("Loading and preparing data...")
     df, faculty_profiles = load_and_prepare_data(file_path)
     

@@ -1,17 +1,15 @@
 import pandas as pd
 import numpy as np
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.utils.class_weight import compute_sample_weight
+from difflib import get_close_matches
 
-# File path to dataset
+# File path to dataset (update if needed)
 file_path = "../ds-bu-awards-analysis/combine_dataset/cleaned_combined_awards.csv"
 
 def load_and_prepare_data():
-    """
-    Load and prepare the awards data for modeling.
-    """
+    # Load and prepare the awards data
     df = pd.read_csv(file_path, delimiter='\t', encoding='utf-8')
 
     faculty_profiles = {}
@@ -35,9 +33,7 @@ def load_and_prepare_data():
     return df, faculty_profiles
 
 def create_feature_matrix(faculty_profiles, target_award):
-    """
-    Create a feature matrix for predicting top candidates for an award.
-    """
+    # Create feature matrix for predicting top candidates for an award
     features = []
     labels = []
     faculty_names = []
@@ -67,10 +63,8 @@ def create_feature_matrix(faculty_profiles, target_award):
 
     return X, y, faculty_names
 
-def train_decision_tree_model(X, y):
-    """
-    Train a Decision Tree model with improved handling for small datasets.
-    """
+def train_svm_model(X, y):
+    # Train SVM model with error handling for small datasets
     if len(set(y)) < 2:
         print("\n⚠ Warning: Not enough data for a proper train-test split.")
         print("Using entire dataset for training.")
@@ -81,18 +75,22 @@ def train_decision_tree_model(X, y):
             X, y, test_size=0.2, random_state=42, stratify=y
         )
 
-    # Compute sample weights for handling class imbalance
-    sample_weights = compute_sample_weight(class_weight="balanced", y=y_train)
+    # Calculate class weight for imbalanced data
+    class_weight = {
+        0: 1,
+        1: len(y[y == 0]) / max(len(y[y == 1]), 1)
+    }
 
-    model = DecisionTreeClassifier(
-        max_depth=3,  # Prevents overfitting
-        min_samples_split=10,  # Prevents small splits
-        min_samples_leaf=5,  # Ensures multiple examples per leaf
-        class_weight="balanced",  # Adjusts weights automatically
+    model = SVC(
+        C=1.0,
+        kernel='rbf',
+        gamma='scale',
+        probability=True,
+        class_weight=class_weight,
         random_state=42
     )
 
-    model.fit(X_train, y_train, sample_weight=sample_weights)
+    model.fit(X_train, y_train)
 
     if len(set(y)) >= 2:
         y_pred = model.predict(X_test)
@@ -106,10 +104,8 @@ def train_decision_tree_model(X, y):
     return model
 
 def predict_award_likelihood(model, X, names):
-    """
-    Predict likelihood of winning an award for all faculty.
-    """
-    probabilities = model.predict_proba(X)[:, 1]  # Get probability estimates
+    # Predict likelihood of winning an award for all faculty
+    probabilities = model.predict_proba(X)[:, 1]
 
     results = pd.DataFrame({
         'name': names,
@@ -117,13 +113,10 @@ def predict_award_likelihood(model, X, names):
     })
 
     results = results.sort_values('likelihood', ascending=False)
-
     return results
 
 def predict_for_award(award_name, faculty_profiles):
-    """
-    Predict the top faculty candidates for a specific award.
-    """
+    # Predict the top faculty candidates for a specific award
     print(f"\nPREDICTING CANDIDATES FOR: {award_name}")
 
     X, y, faculty_names = create_feature_matrix(faculty_profiles, target_award=award_name)
@@ -132,27 +125,49 @@ def predict_for_award(award_name, faculty_profiles):
         print(f"No faculty members have previously received or are a strong fit for {award_name}.")
         return
 
-    model = train_decision_tree_model(X, y)
+    model = train_svm_model(X, y)
     predictions = predict_award_likelihood(model, X, faculty_names)
 
-    print(f"\nTop 10 candidates for {award_name}:")
-    for i, (_, candidate) in enumerate(predictions.head(10).iterrows()):
+    # Display top 20 candidates
+    print(f"\nTop 20 candidates for {award_name}:")
+    for i, (_, candidate) in enumerate(predictions.head(20).iterrows()):
         print(f"{i+1}. {candidate['name']}: {candidate['likelihood']*100:.2f}% likelihood")
 
     return predictions
 
+def find_similar_award(input_award, all_awards, max_matches=5):
+    # Find similar award names if exact match isn't found
+    matches = get_close_matches(input_award, all_awards, n=max_matches, cutoff=0.6)
+    return matches
+
 def interactive_mode():
-    """
-    Run the model in interactive mode to predict candidates for an award.
-    """
+    # Run interactive mode to predict candidates for an award
     print("Loading and preparing data...")
     df, faculty_profiles = load_and_prepare_data()
+    
+    # Get all unique award names for matching
+    all_awards = set()
+    for profile in faculty_profiles.values():
+        all_awards.update(profile['award_names'])
+    all_awards = list(all_awards)
 
     while True:
         award_name = input("\nEnter award name (or type 'exit' to quit): ").strip()
         if award_name.lower() == 'exit':
             print("Exiting...")
             break
+
+        # Check if award exists or find similar ones
+        if award_name not in all_awards:
+            similar_awards = find_similar_award(award_name, all_awards)
+            if similar_awards:
+                print(f"\nAward '{award_name}' not found. Did you mean one of these?")
+                for i, award in enumerate(similar_awards):
+                    print(f"{i+1}. {award}")
+                choice = input("\nEnter the number of your choice (or press Enter to use your original input): ")
+                if choice.isdigit() and 1 <= int(choice) <= len(similar_awards):
+                    award_name = similar_awards[int(choice)-1]
+                    print(f"\nUsing award: {award_name}")
 
         predict_for_award(award_name, faculty_profiles)
 
