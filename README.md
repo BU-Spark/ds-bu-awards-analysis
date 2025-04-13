@@ -11,9 +11,9 @@ This project is about helping BU faculty determine which awards they should appl
 - Python 3.9+
 - Other dependencies listed in `requirements.txt`
 
-### Dataset
+## Dataset
 
-## Discipline Specific Pathways
+### Discipline Specific Pathways
 
 | Column Name                                 | Data Type | Description |
 |--------------------------------------------|-----------|-------------|
@@ -24,7 +24,7 @@ This project is about helping BU faculty determine which awards they should appl
 | `Percentage of Awardees With This Award`    | float     | (Awardees with this award) / (Award nominees) — convert to float |
 | `Mean Academic Age at Time of Award`        | integer   | Average academic age at time of winning the award (years in academia/research) |
 
-## Awards Dataset Metadata
+### Awards Dataset Metadata
 
 | Column Name                 | Data Type | Description |
 |----------------------------|-----------|-------------|
