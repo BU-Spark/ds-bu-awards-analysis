@@ -9,6 +9,24 @@ from sklearn.impute import SimpleImputer
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+COMMON_PATHWAY_AWARDS = [
+    "Faculty Early Career Development (CAREER) Program",
+    "Fellow",
+    "Fulbright Scholar",
+    "NBER Affiliated Scholars",
+    "Guggenheim Fellowship",
+    "AAAS Fellow",
+    "NIH Pathway to Independence Award (K99/R00)",
+    "APS Fellow",
+    "Fulbright U.S. Student Program",
+    "NIH Outstanding Investigator Award (R35)",
+    "Kavli Frontiers of Science Fellows",
+    "Scialog Fellows",
+    "Templeton Grants",
+    "Summer Stipends Awards",
+    "IEEE Fellow",
+]
+
 def load_and_prepare_data(file_path):
     """
     Load and prepare the awards data for modeling
@@ -62,22 +80,11 @@ def create_feature_matrix(faculty_profiles, target_award):
             'major_award_count': profile['category_counts'].get('Major Award', 0),
             'career_span': profile['career_span'] if profile['career_span'] > 0 else 0
         }
-        
-        key_precursors = [
-            "Faculty Early Career Development (CAREER) Program",
-            "Guggenheim Fellowship", 
-            "Presidential Early Career Awards for Scientists and Engineers (PECASE)",
-            "Sloan Research Fellowship",
-            "Fellow",
-            "AAAS Fellow",
-            "APS Fellow",
-            "NIH Director's New Innovator Award"
-        ]
-        
-        for precursor in key_precursors:
+        #COMMON PATHWAY AWARDS
+        for precursor in COMMON_PATHWAY_AWARDS:
             precursor_field = f"has_{precursor.replace(' ', '_').replace('(', '').replace(')', '').replace('/', '_')}"
             feature_dict[precursor_field] = 1 if any(precursor in award_name for award_name in profile['award_names']) else 0
-        
+
         features.append(feature_dict)
         labels.append(1 if has_target else 0)
         faculty_names.append(faculty_name)
@@ -87,29 +94,49 @@ def create_feature_matrix(faculty_profiles, target_award):
     
     return X, y, faculty_names
 
-def train_random_forest_model(X, y):
-    """
-    Train a Random Forest model
-    """
+def train_random_forest_model(X, y, high_accuracy=False):
+
+    positive_count = sum(y)
+
     class_weights = {
         0: 1,
         1: sum(y == 0) / sum(y == 1) 
     }
 
-    model = RandomForestClassifier(
-        n_estimators=100,
-        max_depth=None,
-        min_samples_split=2,
-        min_samples_leaf=1,
-        class_weight=class_weights,
-        random_state=42
-    )
+    if high_accuracy:
+        model = RandomForestClassifier(
+            n_estimators=100,
+            max_depth=None,
+            min_samples_split=2,
+            min_samples_leaf=1,
+            class_weight=class_weights,
+            random_state=42,
+            n_jobs=-1  # Use all CPU cores
+        )
+    else:
+        model = RandomForestClassifier(
+            n_estimators=75,
+            max_depth=None,
+            min_samples_split=2,
+            min_samples_leaf=1,
+            class_weight=class_weights,
+            random_state=42,
+            n_jobs=-1  # Use all CPU cores
+        )
     
     #Train Data and Evaluate Accuracy 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     model.fit(X_train, y_train)
     
     y_pred = model.predict(X_test)
+
+    metrics = {
+        'accuracy': accuracy_score(y_test, y_pred),
+        'precision': precision_score(y_test, y_pred, zero_division=0),
+        'recall': recall_score(y_test, y_pred, zero_division=0),
+        'f1': f1_score(y_test, y_pred, zero_division=0)
+    }
+
     print("Model performance:")
     print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
     print(f"Precision: {precision_score(y_test, y_pred, zero_division=0):.4f}")
@@ -127,7 +154,7 @@ def train_random_forest_model(X, y):
     print("\nFeature Importance:")
     print(feature_importance.head(10))
     
-    return model, feature_importance
+    return model, feature_importance, metrics
 
 def predict_award_likelihood(model, X, faculty_names):
     """
@@ -144,10 +171,8 @@ def predict_award_likelihood(model, X, faculty_names):
     
     return results
 
-def predict_for_award(award_name, faculty_profiles, output_filename=None):
+def predict_for_award(award_name, faculty_profiles, output_filename=None,high_accuracy=False):
     """
-    Predict faculty candidates for a specific award
-    
     Parameters:
     award_name (str): Name of the award to predict candidates for
     faculty_profiles (dict): Dictionary of faculty profiles
@@ -160,7 +185,7 @@ def predict_for_award(award_name, faculty_profiles, output_filename=None):
     print(f"PREDICTION MODEL FOR: {award_name}")
     print(f"{'='*80}")
     
-    # Create feature matrix
+    # Feature matrix
     print(f"\nCreating features for {award_name}...")
     X, y, faculty_names = create_feature_matrix(faculty_profiles, award_name)
     
@@ -171,7 +196,7 @@ def predict_for_award(award_name, faculty_profiles, output_filename=None):
     
     # Training model 
     print("\nTraining random forest model...")
-    model, feature_importance = train_random_forest_model(X, y)
+    model, feature_importance, metrics = train_random_forest_model(X, y, high_accuracy=high_accuracy)
     
     # Predict for all faculty
     print("\nPredicting award likelihood for all faculty...")
@@ -185,18 +210,19 @@ def predict_for_award(award_name, faculty_profiles, output_filename=None):
         print(f"{i+1}. {candidate['faculty_name']}: {candidate['likelihood']*100:.2f}% likelihood")
     
     # Visualize feature importance
+    """
     plt.figure(figsize=(10, 6))
     sns.barplot(x='Importance', y='Feature', data=feature_importance.head(10))
     plt.title(f'Top 10 Features for Predicting {award_name}')
     plt.tight_layout()
     plt.savefig(f'outputs/{award_name.replace(" ", "_")}_feature_importance.png')
-    
+    """
     #Can save to CSV if desired
     if output_filename:
         predictions.head(100).to_csv(f'outputs/{output_filename}', index=False)
         print(f"Saved predictions to outputs/{output_filename}")
         
-    return predictions
+    return predictions, metrics
 
 def find_similar_awards(search_term, df):
     """
@@ -223,7 +249,7 @@ def interactive_mode():
     """
     Run the model in interactive mode to recommend faculty for specific awards
     """
-    file_path = '../ds-bu-awards-analysis/combine_dataset/cleaned_combined_awards.csv'   
+    file_path = 'combine_dataset/cleaned_combined_awards.csv'   
     print("Loading and preparing data...")
     df, faculty_profiles = load_and_prepare_data(file_path)
     
@@ -235,7 +261,8 @@ def interactive_mode():
         print("1. Predict candidates for a specific award")
         print("2. Search for awards by keyword")
         print("3. Run predictions for top prestigious awards")
-        print("4. Exit")
+        print("4. High accuracy prediction for a specific award")
+        print("5. Exit")
         
         choice = input("\nEnter your choice (1-4): ")
         
@@ -275,6 +302,17 @@ def interactive_mode():
                 predict_for_award(award, faculty_profiles, f"{award.replace(' ', '_')}_candidates.csv")
         
         elif choice == '4':
+            award_name = input("\nEnter award name: ")
+            save_option = input("Save results to CSV? (y/n): ")
+            output_file = f"{award_name.replace(' ', '_')}_high_accuracy_candidates.csv" if save_option.lower() == 'y' else None
+            
+            try:
+                predict_for_award(award_name, faculty_profiles, output_file, high_accuracy=True)
+            except Exception as e:
+                print(f"Error: {e}")
+                print("Could not run prediction. Make sure the award name exists in the dataset.")
+        
+        elif choice == '5':
             print("Exiting...")
             break
         
