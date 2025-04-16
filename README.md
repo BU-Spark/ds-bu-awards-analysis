@@ -11,6 +11,45 @@ This project is about helping BU faculty determine which awards they should appl
 - Python 3.9+
 - Other dependencies listed in `requirements.txt`
 
+### Getting Started
+
+To get started with the project locally:
+
+1. **Clone the repository**
+   ```
+   git clone https://github.com/<your-username>/<repo-name>.git
+   cd <repo-name>
+   ```
+
+2. **(Optional) Create and activate a virtual environment**
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```
+   pip install -r requirements.txt
+   ```
+
+## How to Run the Code
+
+### Option 1: Jupyter Notebooks
+
+You can open the notebook with:
+```
+jupyter notebook combine_dataset/combine_dataset.ipynb
+```
+
+### Option 2: Run Python Scripts
+
+To run any Python script (e.g., from the `src/` directory), use:
+```
+python src/your_script.py
+```
+
+The most important files are the combine_dataset.ipynb in our combine_dataset folder as well as the files in the src folder. The files in the src folder contain all of our models.
+
 ## Dataset
 
 ### Discipline Specific Pathways
@@ -53,3 +92,7 @@ This project is about helping BU faculty determine which awards they should appl
 ├── README.md                # Project overview and instructions
 ├── requirements.txt         # Dependencies for random forest model
 ```
+
+### Next Steps
+
+For any future team reading this, it would best to start with making sure the model does perform accurately. Right now, our models get about 80% accuracy, however, we are unable to validate whether this is in line with the client's model. In addition, we only used part of the discipline pathways dataset due to constraints with how large the file is. If there is a workaround (assuming no limiations), it would be beneficial to use the entire 300,000 rows or so to improve the model.
