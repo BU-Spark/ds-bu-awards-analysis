@@ -26,13 +26,14 @@ DS 539
 
 # Dataset Information
 
-**What data sets did you use in your project?**  
-Please provide a link to the data sets, this could be a link to a folder in your GitHub Repo, Spark! owned Google Drive Folder for this project, or a path on the SCC, etc.  
-List of all BU faculty and their awards  
-Historical data on the paths in which faculty win awards
+**What data sets did you use in your project? Please provide a link to the data sets, this could be a link to a folder in your GitHub Repo, Spark! owned Google Drive Folder for this project, or a path on the SCC, etc.**
+
+[Dataset](https://github.com/BU-Spark/ds-bu-awards-analysis/tree/prepare_model/clean_dataset)
 
 **Please provide a link to any data dictionaries for the datasets in this project.**  
 If one does not exist, please create a data dictionary for the datasets used in this project. (Example of data dictionary)
+
+[Data Dictionary](https://docs.google.com/document/d/1q97UhW8DeOmQDGFf5BQJ-wmBxqoAgfs3_MpOGPlSgDc/edit?usp=sharing)
 
 ---
 
