@@ -34,21 +34,33 @@ To get started with the project locally:
 
 ## How to Run the Code
 
-### Option 1: Jupyter Notebooks
+To run any Python script from this project, follow these steps in your terminal:
 
-You can open the notebook with:
 ```
-jupyter notebook combine_dataset/combine_dataset.ipynb
+# Step 1: Navigate to the root of the project
+cd path/to/your/project
+
+# Step 2: List the contents to make sure you're in the right place
+ls
+# You should see something like:
+# combine_dataset/  src/  README.md
+
+# Step 3: Change into the src folder where the scripts are
+cd src
+
+# Step 4: List the Python scripts available
+ls
+
+# Step 5: Run the desired Python script
+python model1.py
+# Replace 'model1.py' with the script you want to run
 ```
 
-### Option 2: Run Python Scripts
+### 📁 Key Folder
 
-To run any Python script (e.g., from the `src/` directory), use:
-```
-python src/your_script.py
-```
+- `src/` – Contains all model implementation files and utility scripts.
 
-The most important files are the combine_dataset.ipynb in our combine_dataset folder as well as the files in the src folder. The files in the src folder contain all of our models.
+The most important files are the combine_dataset.ipynb in our combine_dataset folder as well as the files in the src folder.
 
 ## Dataset
 
