@@ -95,27 +95,35 @@ def create_feature_matrix(faculty_profiles, target_award):
     return X, y, faculty_names
 
 def train_random_forest_model(X, y, high_accuracy=False):
-
+    """
+    Train a Random Forest model with parameters optimized based on dataset size
+    """
     positive_count = sum(y)
-
+    small_dataset = positive_count < 50  # Define small dataset threshold
+    
+    # Adjust class weights to handle imbalance
     class_weights = {
         0: 1,
-        1: sum(y == 0) / sum(y == 1) 
+        1: sum(y == 0) / max(sum(y == 1), 1)  # Avoid division by zero
     }
 
-    if high_accuracy:
+    # Configure model parameters based on dataset size and accuracy preference
+    if small_dataset:
+        print(f"Small dataset detected ({positive_count} positive examples). Using specialized parameters to prevent overfitting.")
         model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=None,
-            min_samples_split=2,
-            min_samples_leaf=1,
+            n_estimators=10 if not high_accuracy else 50,  # Fewer trees for small datasets
+            max_depth=3,                # Limit depth to prevent overfitting
+            min_samples_split=6,        # Require more samples to split
+            min_samples_leaf=4,         # Require more samples at leaf nodes
             class_weight=class_weights,
             random_state=42,
-            n_jobs=-1  # Use all CPU cores
+            n_jobs=-1,                  # Use all CPU cores
+            max_features='sqrt'         # Consider subset of features
         )
     else:
+        # Standard parameters for larger datasets
         model = RandomForestClassifier(
-            n_estimators=75,
+            n_estimators=75 if not high_accuracy else 100,
             max_depth=None,
             min_samples_split=2,
             min_samples_leaf=1,
@@ -124,10 +132,19 @@ def train_random_forest_model(X, y, high_accuracy=False):
             n_jobs=-1  # Use all CPU cores
         )
     
-    #Train Data and Evaluate Accuracy 
+    # Train the model
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     model.fit(X_train, y_train)
     
+    # For small datasets, show cross-validation metrics for better evaluation
+    if small_dataset:
+        cv_folds = min(5, positive_count)  # Adjust folds based on dataset size
+        if cv_folds >= 3:  # Only perform CV if we have enough data
+            cv_scores = cross_val_score(model, X, y, cv=cv_folds, scoring='f1', n_jobs=-1)
+            print(f"Cross-validation F1 scores ({cv_folds}-fold): {cv_scores}")
+            print(f"Mean F1: {cv_scores.mean():.4f}, Std: {cv_scores.std():.4f}")
+    
+    # Evaluate on test set
     y_pred = model.predict(X_test)
 
     metrics = {
@@ -138,10 +155,10 @@ def train_random_forest_model(X, y, high_accuracy=False):
     }
 
     print("Model performance:")
-    print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-    print(f"Precision: {precision_score(y_test, y_pred, zero_division=0):.4f}")
-    print(f"Recall: {recall_score(y_test, y_pred, zero_division=0):.4f}")
-    print(f"F1 Score: {f1_score(y_test, y_pred, zero_division=0):.4f}")
+    print(f"Accuracy: {metrics['accuracy']:.4f}")
+    print(f"Precision: {metrics['precision']:.4f}")
+    print(f"Recall: {metrics['recall']:.4f}")
+    print(f"F1 Score: {metrics['f1']:.4f}")
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred, zero_division=0))
     
@@ -264,7 +281,7 @@ def interactive_mode():
         print("4. High accuracy prediction for a specific award")
         print("5. Exit")
         
-        choice = input("\nEnter your choice (1-4): ")
+        choice = input("\nEnter your choice (1-5): ")
         
         if choice == '1':
             award_name = input("\nEnter award name: ")
