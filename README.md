@@ -56,7 +56,7 @@ python model1.py
 # Replace 'model1.py' with the script you want to run
 ```
 
-### 📁 Key Folder
+### Key Folder
 
 - `src/` – Contains all model implementation files and utility scripts.
 
