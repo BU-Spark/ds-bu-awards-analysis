@@ -235,9 +235,9 @@ def predict_for_award(award_name, faculty_profiles, output_filename=None,high_ac
     plt.savefig(f'outputs/{award_name.replace(" ", "_")}_feature_importance.png')
     """
     #Can save to CSV if desired
-    if output_filename:
-        predictions.head(100).to_csv(f'outputs/{output_filename}', index=False)
-        print(f"Saved predictions to outputs/{output_filename}")
+   #if output_filename:
+    #    predictions.head(100).to_csv(f'outputs/{output_filename}', index=False)
+     #   print(f"Saved predictions to outputs/{output_filename}")
         
     return predictions, metrics
 
@@ -266,7 +266,7 @@ def interactive_mode():
     """
     Run the model in interactive mode to recommend faculty for specific awards
     """
-    file_path = 'combine_dataset/cleaned_combined_awards.csv'   
+    file_path = 'data/combine_dataset/cleaned_combined_awards.csv'   
     print("Loading and preparing data...")
     df, faculty_profiles = load_and_prepare_data(file_path)
     
@@ -286,8 +286,8 @@ def interactive_mode():
         if choice == '1':
             award_name = input("\nEnter award name: ")
             save_option = input("Save results to CSV? (y/n): ")
-            output_file = f"{award_name.replace(' ', '_')}_candidates.csv" if save_option.lower() == 'y' else None
-            
+            # output_file = f"{award_name.replace(' ', '_')}_candidates.csv" if save_option.lower() == 'y' else None
+            output_file = None
             try:
                 predict_for_award(award_name, faculty_profiles, output_file)
             except Exception as e:
@@ -316,13 +316,13 @@ def interactive_mode():
             ]
             
             for award in target_awards:
-                predict_for_award(award, faculty_profiles, f"{award.replace(' ', '_')}_candidates.csv")
-        
+                # predict_for_award(award, faculty_profiles, f"{award.replace(' ', '_')}_candidates.csv")
+                predict_for_award(award, faculty_profiles)
         elif choice == '4':
             award_name = input("\nEnter award name: ")
             save_option = input("Save results to CSV? (y/n): ")
-            output_file = f"{award_name.replace(' ', '_')}_high_accuracy_candidates.csv" if save_option.lower() == 'y' else None
-            
+            # output_file = f"{award_name.replace(' ', '_')}_high_accuracy_candidates.csv" if save_option.lower() == 'y' else None
+            output_file = None
             try:
                 predict_for_award(award_name, faculty_profiles, output_file, high_accuracy=True)
             except Exception as e:
