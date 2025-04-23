@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, classification_report
 from sklearn.utils.class_weight import compute_sample_weight
 
 # File path to dataset
-file_path = "../ds-bu-awards-analysis/combine_dataset/cleaned_combined_awards.csv"
+file_path = "../ds-bu-awards-analysis/data/combine_dataset/cleaned_combined_awards.csv"
 
 def load_and_prepare_data():
     """

@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score
 
 # Set file path
 base_path = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(base_path, "../ds-bu-awards-analysis/combine_dataset/cleaned_combined_awards.csv")
+file_path = os.path.join(base_path, "../ds-bu-awards-analysis/data/combine_dataset/cleaned_combined_awards.csv")
 
 # Load data
 df = pd.read_csv(file_path, delimiter="\t", encoding="utf-8")

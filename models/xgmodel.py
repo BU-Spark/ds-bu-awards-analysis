@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, classification_report
 from difflib import get_close_matches
 
 # File path to dataset (update if needed)
-file_path = "../ds-bu-awards-analysis/combine_dataset/cleaned_combined_awards.csv"
+file_path = "../ds-bu-awards-analysis/data/combine_dataset/cleaned_combined_awards.csv"
 
 def load_and_prepare_data():
     # Load and prepare the awards data 

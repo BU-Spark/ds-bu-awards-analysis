@@ -348,7 +348,7 @@ def main():
         os.makedirs('outputs')
         print("Created 'outputs' directory for storing results.")
     
-    if not os.path.exists('data/cleaned_combined_awards.csv'):
+    if not os.path.exists('../ds-bu-awards-analysis/data/combine_dataset/cleaned_combined_awards.csv'):
         print("Error: cleaned_combined_awards.csv not found in the data directory.")
         return
     
