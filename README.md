@@ -95,14 +95,15 @@ The most important files are the combine_dataset.ipynb in our combine_dataset fo
 
 ### Data Structure
 ```
-├── clean_dataset/           # Cleaned dataset
-├── combine_dataset/         # Combined RI_Matches and Discipline_Pathways dataset
-├── dataset-documentation/   # Dataset documentation and metadata
-├── raw_dataset/             # Original dataset files
-├── scripts/                 # Hypothesis Testing and EDA Python Scripts
-├── src/                     # Scripts for training model
-├── README.md                # Project overview and instructions
-├── requirements.txt         # Dependencies for random forest model
+├── data/                     # All dataset files
+│   ├── clean_dataset/           # Cleaned dataset
+│   ├── combine_dataset/         # Combined RI_Matches and Discipline_Pathways dataset
+│   ├── raw_dataset/             # Original dataset files
+├── dataset-documentation/    # Dataset documentation and metadata
+├── scripts/                  # Hypothesis Testing and EDA Python Scripts
+├── src/                      # Scripts for training model
+├── README.md                 # Project overview and instructions
+├── requirements.txt          # Dependencies for random forest model
 ```
 
 ### Challenges
