@@ -3,7 +3,22 @@
 This repository contains the workflow, analysis, and visualizations for the project "BU Award Analysis" for CDS DS 539 Spring 2025, at Boston University.
 
 ## Overview
-This project is about helping BU faculty determine which awards they should apply to for the highest chance. The goal is to create a model that works alongside the current excel model the Strategy & Innovation department currently uses.
+This project aims to help Boston University’s Strategy & Innovation department in identifying the most strategic awards for faculty to apply for based on historical data. 
+
+The main objective is to build a tool that recommends awards to faculty by analyzing trends in award progression, prior recognitions, academic age, and institutional affiliations. We conducted data cleaning, EDA, and combined the two datasets to perform model predictions. By using data from Academic Analytics, we analyzed patterns from past award winners and compared that to current BU faculty to predict their likelihood of winning the target awards. 
+
+Our goal is to improve and streamline that process through a machine learning-based system that improves predictive accuracy. 
+
+### Project Description
+Academic Analytics is a platform that allows universities to benchmark their research accomplishments against other peer institutions. One aspect of this is allowing them to compare awards. The client is interested in finding a more streamlined and accurate way to predict faculty’s likelihood of winning an award based on their academic history, including length of career and pathway awards. 
+
+### Project Checklist
+Combine and clean the BU faculty award history datasets, resolving award name mismatches using similarity scoring.
+Engineer relevant features such as award prestige, academic age, and prior award count to support predictive modeling.
+Develop and evaluate multiple machine learning models (XGBoost, Random Forest, LightGBM) to predict the likelihood of faculty receiving specific awards.
+Identify pathways to high-prestige awards (e.g., American Academy of Arts and Sciences) and analyze trends in award progression.
+Validate model results by cross-referencing faculty known to have received awards.
+Document the data preprocessing pipeline, model performance, and limitations for future teams.
 
 ## Setup
 
@@ -37,19 +52,21 @@ To get started with the project locally:
 To run any Python script from this project, follow these steps in your terminal:
 
 ```
-# Step 1: Navigate to the root of the project
+# Step 1: Navigate to the root of the project (where you cloned the repository)
 cd path/to/your/project
 
 # Step 2: List the contents to make sure you're in the right place
 ls
 # You should see something like:
-# combine_dataset/  src/  README.md
+# data/ dataset-documentation/ hypothesis_eda_scripts/ models/ README.md/ requirements.txt/
 
 # Step 3: Change into the src folder where the scripts are
-cd src
+cd models
 
 # Step 4: List the Python scripts available
-ls
+Ls
+# You should see something like this:
+# LightGBM_model.py/ dtreemodel.py/ random_forest_model.py/ support_vector_machine.py/ xgboost_j.py/ xgmodel.py/
 
 # Step 5: Run the desired Python script
 python model1.py
@@ -58,7 +75,7 @@ python model1.py
 
 ### Key Folder
 
-- `src/` – Contains all model implementation files and utility scripts.
+- `models/` – Contains all model implementation files and utility scripts.
 
 The most important files are the combine_dataset.ipynb in our combine_dataset folder as well as the files in the src folder.
 
@@ -106,10 +123,29 @@ The most important files are the combine_dataset.ipynb in our combine_dataset fo
 ├── requirements.txt          # Dependencies for random forest model
 ```
 
-### Challenges
+
+## Proposed Solution
+
+Goal : Develop a machine learning system that predicts which BU faculty are most likely to win a given award based on their academic history.
+
+Approach :
+Combined and cleaned two datasets (Discipline Specific Pathways + RI Matches) using similarity matching.
+Trained 5 machine learning models (XGBoost, Random Forest, LightGBM, Support Vector Machine, Decision Tree) using features like academic age, discipline, and prior awards.
+Final model returns a ranked list of top candidates for any given award.
+
+Output : 
+For any selected award, the model returns a ranked list of top BU faculty with the highest likelihood of receiving it.
+Outputs include predicted probabilities and feature importances for interpretability.
+
+Impact : Supports long-term goal of automating and scaling the award recommendation workflow.
+
+## Challenges
 
 One of the main challenges we faced was handling the RI_Matches file, which contained nearly 300,000 rows. Combining it with the discipline dataset significantly slowed down the process and required careful handling. Additionally, we encountered inconsistency in our model results. Despite using the same input, each model yielded varying outputs, making it difficult to pinpoint the most reliable model. We were also limited by the size of the Discipline Pathways dataset, only using a portion of it due to memory and processing constraints. This likely impacted the model's ability to capture the full range of award trajectories.
 
-### Next Steps
+## Next Steps
 
-For any future team reading this, it would best to start with making sure the model does perform accurately. Right now, our models get about 80% accuracy, however, we are unable to validate whether this is in line with the client's model. Another next step is to create a UI interface since the project is designed for non-technical people. Having an interface would make it easier to demonstrate the results of the model.
+For any future team reading this, it would be best to start with making sure the model does perform accurately. Right now, our models get about 80% accuracy, however, we are unable to validate whether this is in line with the client's model. Another next step is to create a UI interface since the project is designed for non-technical people. Having an interface would make it easier to demonstrate the results of the model.
+
+
+
