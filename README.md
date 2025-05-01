@@ -124,7 +124,7 @@ The most important files are the combine_dataset.ipynb in our combine_dataset fo
 ```
 
 
-### Proposed Solution
+## Proposed Solution
 
 Goal : Develop a machine learning system that predicts which BU faculty are most likely to win a given award based on their academic history.
 
@@ -139,11 +139,11 @@ Outputs include predicted probabilities and feature importances for interpretabi
 
 Impact : Supports long-term goal of automating and scaling the award recommendation workflow.
 
-### Challenges
+## Challenges
 
 One of the main challenges we faced was handling the RI_Matches file, which contained nearly 300,000 rows. Combining it with the discipline dataset significantly slowed down the process and required careful handling. Additionally, we encountered inconsistency in our model results. Despite using the same input, each model yielded varying outputs, making it difficult to pinpoint the most reliable model. We were also limited by the size of the Discipline Pathways dataset, only using a portion of it due to memory and processing constraints. This likely impacted the model's ability to capture the full range of award trajectories.
 
-### Next Steps
+## Next Steps
 
 For any future team reading this, it would be best to start with making sure the model does perform accurately. Right now, our models get about 80% accuracy, however, we are unable to validate whether this is in line with the client's model. Another next step is to create a UI interface since the project is designed for non-technical people. Having an interface would make it easier to demonstrate the results of the model.
 
